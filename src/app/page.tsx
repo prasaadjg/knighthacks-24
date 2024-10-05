@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useEffect } from "react";
 
 import { LatestPost } from "~/app/_components/post";
 import { api, HydrateClient } from "~/trpc/server";

@@ -16,7 +16,7 @@ export const posts = createTable(
   "post",
   {
     id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-    name: text("name", { length: 256 }),
+    name: text("name", { length: 256 }).notNull(),
     createdAt: int("created_at", { mode: "timestamp" })
       .default(sql`(unixepoch())`)
       .notNull(),
@@ -24,7 +24,7 @@ export const posts = createTable(
       () => new Date()
     ),
   },
-  (example) => ({
-    nameIndex: index("name_idx").on(example.name),
+  (table) => ({
+    nameIndex: index("name_idx").on(table.name),
   })
 );

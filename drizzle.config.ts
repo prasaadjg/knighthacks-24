@@ -7,6 +7,7 @@ export default {
   dialect: "sqlite",
   dbCredentials: {
     url: env.DATABASE_URL,
+    authToken: env.DATABASE_TOKEN,
   },
   tablesFilter: ["knighthacks-24_*"],
 } satisfies Config;
