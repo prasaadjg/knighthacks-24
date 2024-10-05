@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { useEffect } from "react";
 
 import { LatestPost } from "~/app/_components/post";
 import { api, HydrateClient } from "~/trpc/server";
+import LoginButton from "./auth";
 
 export default async function Home() {
   const hello = await api.post.hello({ text: "from tRPC" });
@@ -45,6 +45,8 @@ export default async function Home() {
               {hello ? hello.greeting : "Loading tRPC query..."}
             </p>
           </div>
+
+          <LoginButton />
 
           <LatestPost />
         </div>
