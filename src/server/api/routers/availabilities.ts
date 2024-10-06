@@ -5,6 +5,15 @@ import { eq, and } from "drizzle-orm";
 import { availabilities } from "~/server/db/schema";
 
 export const availabilitiesRouter = createTRPCRouter({
+    getAvailabilities: publicProcedure 
+    .input(z.object({ userId: z.number(), groupId: z.number() }))
+    .query(async ({ ctx, input }) => {
+        return await ctx.db
+        .select()
+        .from(availabilities)
+        .where(and(eq(availabilities.userId, input.userId), eq(availabilities.groupId, input.groupId)));
+    }),
+
     // add new availability
     createAvailability: publicProcedure 
         .input(z.object({
@@ -21,20 +30,6 @@ export const availabilitiesRouter = createTRPCRouter({
                 end: input.end
             });
         }),
-
-
-    // get availabilities in a group for a specific user
-    getAvailabilities: publicProcedure 
-        .input(z.object({ 
-            userId: z.number(), 
-            groupId: z.number(), 
-         }))
-         .query(async ({ ctx, input }) => {
-            return await ctx.db 
-                .select()
-                .from(availabilities)
-                .where(and(eq(availabilities.userId, input.userId), eq(availabilities.groupId, input.groupId)));
-         }),
 
     // get availability start date/time 
     // date and time are put into one string and must be parsed out

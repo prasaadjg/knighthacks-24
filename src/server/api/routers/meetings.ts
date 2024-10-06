@@ -5,6 +5,15 @@ import { eq, and } from "drizzle-orm";
 import { meetings } from "~/server/db/schema";
 
 export const meetingsRouter = createTRPCRouter({
+    getMeetingsByGroup: publicProcedure 
+    .input(z.object({ groupId: z.number() }))
+    .query(async ({ ctx, input }) => {
+        return await ctx.db
+        .select()
+        .from(meetings) 
+        .where(eq(meetings.groupId, input.groupId));
+    }),
+
     // create meeting
     createGroup: publicProcedure 
         .input(z.object({
@@ -20,16 +29,6 @@ export const meetingsRouter = createTRPCRouter({
                 start: input.start, 
                 end: input.end,
             });
-        }),
-
-    // get all meetings in a group 
-    getMeetingsByGroup: publicProcedure 
-        .input(z.object({ groupId: z.number() }))
-        .query(async ({ ctx, input }) => {
-            return await ctx.db
-                .select()
-                .from(meetings) 
-                .where(eq(meetings.groupId, input.groupId))
         }),
     
     // get meeting name 
