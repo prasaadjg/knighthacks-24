@@ -3,43 +3,32 @@ import { useUser } from '@clerk/nextjs';
 import { api } from '~/trpc/react';
 
 const useUserIdStore = () => {
-  const { user, isSignedIn } = useUser(); // Clerk's hook to check user status
+  const { user } = useUser();
   const [userId, setUserId] = useState<number | null>(null);
 
-  // Mutation to add user to the database
-  const addUserToDb = api.users.addUser.useMutation();
+  // Use TRPC query to fetch user ID by authId, defaulting to user.id
+  const foundUserIdData = api.users.getIdFromUId.useQuery({
+    authId: user?.id ?? 'user_2n2L7nJm3tiKaJcvQd9VTXvpNjt', // Fallback to the hardcoded ID only if user is not available
+  }, {
+    enabled: !!user?.id, // Enable the query only if user exists
+  });
 
-  // Query to get the user ID from the DB
-  const { data: foundUserIdData } = api.users.getIdFromUId.useQuery(
-    {
-      authId: user?.id ?? '',
-    },
-    {
-      enabled: !!user?.id && !userId, // Only run if the user is signed in and userId is not already set
-    }
-  );
-
-  // UseEffect to handle user sign-in and database insertion
   useEffect(() => {
-    if (isSignedIn && user && !userId) {
-      // Add user to the DB (if they don't exist already)
-      addUserToDb.mutate({
-        authId: user.id,
-        displayName: user.firstName ?? '',
-        iconUrl: user.imageUrl,
-      });
-    }
-  }, [isSignedIn, user, userId, addUserToDb]);
+    console.log("************");
+    console.log(foundUserIdData);
 
-  // UseEffect to fetch the user ID from the DB once the data is available
-  useEffect(() => {
-    if (foundUserIdData) {
-      // Assuming foundUserIdData is an array of user data
-      setUserId(foundUserIdData.id); // Set the userId if it's found in the DB
-    }
-  }, [foundUserIdData]);
+    // Check if data exists and is an array
+    const foundUserId = foundUserIdData.data;
 
-  return { userId };
+    if (foundUserId) {
+      // Access the first element of the array and set the userId
+      setUserId(foundUserId.id);
+      console.log("--**--**--**--**");
+      console.log(foundUserId.id); // Correctly accessing the first element's id
+    }
+  }, [foundUserIdData]); // Use foundUserIdData as a dependency, not user
+
+  return userId;
 };
 
 export default useUserIdStore;

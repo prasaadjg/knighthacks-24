@@ -9,7 +9,7 @@ import { api } from "~/trpc/react"
 
 export default function page() {
   const { user } = useUser();
-  const {userId} = useUserIdStore();
+  const userId = useUserIdStore();
 
   return (
     <div className="p-4 bg-blue-400 h-screen w-screen">
