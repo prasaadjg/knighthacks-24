@@ -5,7 +5,7 @@ import { eq, and } from "drizzle-orm";
 import { friends } from "~/server/db/schema";
 
 export const friendRouter = createTRPCRouter({
-    // add friend (create relation)
+    // add friend (create relation between two users)
     addFriend: publicProcedure
         .input(z.object({
             userId: z.number(), 
@@ -28,7 +28,7 @@ export const friendRouter = createTRPCRouter({
                 .where(eq(friends.userId, input.userId));
         }),
 
-    // remove friend (delete relation)
+    // remove friend (delete relation between two users)
     deleteFriend: publicProcedure 
         .input(z.object({
             userId: z.number(), 
@@ -39,5 +39,4 @@ export const friendRouter = createTRPCRouter({
                 .delete(friends)
                 .where(and(eq(friends.userId, input.userId), eq(friends.friendId, input.friendId)));
         }),
-
 })

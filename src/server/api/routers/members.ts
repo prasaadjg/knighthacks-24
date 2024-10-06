@@ -1,32 +1,55 @@
-import { db } from "~/server/db";
-import { eq } from "drizzle-orm";
-import { members, SelectUser, SelectGroup, InsertMember } from "~/server/db/schema";
+import { z } from "zod";
+import { createTRPCRouter, publicProcedure } from "../trpc";
 
-// get all groups a user is in (by userId) 
-export async function getGroupsByUser(userId: SelectUser['id']): Promise<
-    Array<{ groupId: number }>
->{
-    return db
-        .select({ groupId: members.groupId })
-        .from(members)
-        .where(eq(members.userId, userId));
-}
+import { eq, and } from "drizzle-orm";
+import { members } from "~/server/db/schema";
 
-// get all users in a group (by groupId)
-    // TODO: have ability to filter out certain members (used for showing availabilities on calendar)
-export async function getUsersByGroup(groupId: SelectGroup['id']): Promise<
-    Array<{ userId: number }>
->{
-    return db 
-        .select({ userId: members.userId })
-        .from(members)
-        .where(eq(members.groupId, groupId));
-}
+export const memberRouter = createTRPCRouter({
+    // add member (create relation between a user and a group)
+    addMember: publicProcedure 
+        .input(z.object({
+            groupId: z.number(),
+            userId: z.number(), 
+            userColor: z.string(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+            await ctx.db.insert(members).values({
+                groupId: input.groupId, 
+                userId: input.userId, 
+                userColor: input.userColor,
+            });
+        }),
 
-// add member (join group)
-export async function createMember(data: InsertMember) {
-    await db.insert(members).values(data);
-}
-
-
-// TODO: delete member (leave group)
+    // get all groups a user in by userId
+    getGroupsByUser: publicProcedure 
+        .input(z.object({ userId: z.number() }))
+        .query(async ({ ctx, input }) => {
+            return await ctx.db 
+                .select({ groupId: members.groupId })
+                .from(members) 
+                .where(eq(members.userId, input.userId));
+        }),
+    
+    // get all users in a group by groupId
+    // TODO: ability to filter by user? 
+    getUsersByGroup: publicProcedure
+        .input(z.object({ groupId: z.number() }))
+        .query(async ({ ctx, input }) => {
+            return await ctx.db
+                .select({ userId: members.userId })
+                .from(members)
+                .where(eq(members.groupId, input.groupId));
+        }),
+    
+    // remove member (delete relation between a user and a group)
+    deleteMember: publicProcedure 
+        .input(z.object({
+            groupId: z.number(), 
+            userId: z.number(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+            await ctx.db
+                .delete(members)
+                .where(and(eq(members.groupId, input.groupId), eq(members.userId, input.userId)));
+        }),
+})

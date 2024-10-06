@@ -1,46 +1,127 @@
-import { db } from "~/server/db";
-import { eq } from "drizzle-orm";
-import { meetings, SelectMeeting, InsertMeeting, SelectGroup } from "~/server/db/schema";
+import { z } from "zod";
+import { createTRPCRouter, publicProcedure } from "../trpc";
 
-// create meeting (only allowed for group owner)
-export async function createMeeting(data: InsertMeeting) {
-    await db.insert(meetings).values(data);
-}
+import { eq, and } from "drizzle-orm";
+import { meetings } from "~/server/db/schema";
 
-// get all meetings under a group (by groupId)
-export async function getMeetings(groupId: SelectGroup['id'])
-{
-    return db.select().from(meetings).where(eq(meetings.groupId, groupId));
-}
+export const meetingRouter = createTRPCRouter({
+    // create meeting
+    createGroup: publicProcedure 
+        .input(z.object({
+            groupId: z.number(), 
+            meetingName: z.string(), 
+            start: z.string(), 
+            end: z.string(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+            await ctx.db.insert(meetings).values({
+                groupId: input.groupId, 
+                meetingName: input.meetingName,
+                start: input.start, 
+                end: input.end,
+            });
+        }),
 
-// get meeting name (query)
-export async function getMeetingName(groupId: SelectGroup['id'])
-{
-    return db
-        .select({ meetingName: meetings.meetingName })
-        .from(meetings)
-        .where(eq(meetings.groupId, groupId));
-}
+    // get all meetings in a group 
+    getMeetingsByGroup: publicProcedure 
+        .input(z.object({ groupId: z.number() }))
+        .query(async ({ ctx, input }) => {
+            return await ctx.db
+                .select()
+                .from(meetings) 
+                .where(eq(meetings.groupId, input.groupId))
+        }),
+    
+    // get meeting name 
+    getMeetingName: publicProcedure
+        .input(z.object({ groupId: z.number() }))
+        .query(async ({ ctx, input }) => {
+            return await ctx.db 
+                .select({ meetingName: meetings.meetingName })
+                .from(meetings)
+                .where(eq(meetings.groupId, input.groupId));
+        }),
+    
+    // change meeting name 
+    changeMeetingName: publicProcedure 
+        .input(z.object({ 
+            groupId: z.number(), 
+            newName: z.string(), 
+         }))
+        .mutation(async ({ ctx, input }) => {
+            await ctx.db
+                .update(meetings)
+                .set({ meetingName: input.newName })
+                .where(eq(meetings.groupId, input.groupId));
+        }),
 
-// change meeting name (update)
-export async function changeMeetingName(groupId: SelectGroup['id'], newName: Partial<Pick<SelectMeeting, 'meetingName'>>) {
-    await db.update(meetings).set(newName).where(eq(meetings.groupId, groupId));
-}
+    // get meeting start date/time 
+    // date/time is stored as one string and individual date/time must be parsed out 
+    getStart: publicProcedure 
+        .input(z.object({ 
+            groupId: z.number(),
+            meetingName: z.string()
+        }))
+        .query(async ({ ctx, input }) => {
+            return await ctx.db 
+                .select({ start: meetings.start })
+                .from(meetings)
+                .where(and(eq(meetings.groupId, input.groupId), eq(meetings.meetingName, input.meetingName)))
+        }),
 
-// get meeting dates (returns both start_date and end_date)
-// TODO: figure out how to format dates correctly before implementing (test w/ groups)
+    // change meeting start date/time 
+    // must check whether new start date/time is valid 
+    changeStart: publicProcedure 
+        .input(z.object({
+            groupId: z.number(), 
+            meetingName: z.string(), 
+            newStart: z.string(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+            await ctx.db 
+                .update(meetings) 
+                .set({ start: input.newStart })
+                .where(and(eq(meetings.groupId, input.groupId), eq(meetings.meetingName, input.meetingName)))
+        }),
 
-
-// edit meeting dates 
-    // takes in new start_date and end_date, updates them
-// TODO: figure out how to format dates correctly before implementing (test w/ groups)    
-
-// get meeting times (returns both start_time and end_time)
-// TODO: figure out how to format dates correctly before implementing (test w/ groups)
-
-// edit meeting times
-    // takes in new start_time and end_time, updates them 
-// TODO: figure out how to format dates correctly before implementing (test w/ groups)
-
-// TODO: delete meeting
-// only affects meetings table 
+    // get meeting end date/time 
+    // date/time is stored as one string and individual date/time must be parsed out 
+    getEnd: publicProcedure 
+        .input(z.object({ 
+            groupId: z.number(),
+            meetingName: z.string()
+        }))
+        .query(async ({ ctx, input }) => {
+            return await ctx.db 
+                .select({ end: meetings.end })
+                .from(meetings)
+                .where(and(eq(meetings.groupId, input.groupId), eq(meetings.meetingName, input.meetingName)))
+        }),
+    
+    // change meeting end date/time 
+    // must check whether new start date/time is valid 
+    changeEnd: publicProcedure 
+        .input(z.object({
+            groupId: z.number(), 
+            meetingName: z.string(), 
+            newEnd: z.string(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+            await ctx.db 
+                .update(meetings) 
+                .set({ end: input.newEnd })
+                .where(and(eq(meetings.groupId, input.groupId), eq(meetings.meetingName, input.meetingName)))
+        }),
+    
+    // delete meeting 
+    deleteMeeting: publicProcedure
+        .input(z.object({ 
+            groupId: z.number(), 
+            meetingName: z.string(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+            await ctx.db 
+                .delete(meetings)
+                .where(and(eq(meetings.groupId, input.groupId), eq(meetings.meetingName, input.meetingName)));
+        }),
+})
