@@ -14,7 +14,7 @@ import { index, int, sqliteTableCreator, integer, text, primaryKey, sqliteTable,
 export const createTable = sqliteTableCreator((name) => `knighthacks_24_${name}`);
 
 //example code for posts
-
+//wrote schema
 export const posts = createTable(
   "post",
   {
