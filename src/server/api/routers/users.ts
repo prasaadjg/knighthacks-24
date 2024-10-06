@@ -1,14 +1,13 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
-import { eq } from "drizzle-orm";
-import { users } from "~/server/db/schema";
+import { eq, or } from "drizzle-orm";
+import { users, friends, members, availabilities } from "~/server/db/schema";
 
 export const userRouter = createTRPCRouter({
     // create new user 
     createUser: publicProcedure 
         .input(z.object({
-            id: z.number(), 
             authId: z.number(), 
             displayName: z.string(), 
             iconUrl: z.string(), 
@@ -16,7 +15,6 @@ export const userRouter = createTRPCRouter({
         }))
         .mutation(async ({ ctx, input }) => {
             await ctx.db.insert(users).values({
-                id: input.id, 
                 authId: input.authId, 
                 displayName: input.displayName,
                 iconUrl: input.iconUrl, 
@@ -71,5 +69,18 @@ export const userRouter = createTRPCRouter({
                 .where(eq(users.id, input.id))
         }),
     
-    // TODO: delete user
+    // delete user
+    deleteUser: publicProcedure 
+        .input(z.object({ id: z.number() }))
+        .mutation(async ({ ctx, input }) => {
+            await ctx.db.batch([
+                // delete records that depend on users for foreign key
+                ctx.db.delete(friends).where(or(eq(friends.userId, input.id), eq(friends.friendId, input.id))),
+                ctx.db.delete(members).where(eq(members.userId, input.id)),
+                ctx.db.delete(availabilities).where(eq(availabilities.userId, input.id)),
+
+                // delete user record 
+                ctx.db.delete(users).where(eq(users.id, input.id))
+            ]);
+        }),
 })
