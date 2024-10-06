@@ -1,3 +1,4 @@
+import { useAuth } from "@clerk/clerk-react";
 import { clerkMiddleware } from "@clerk/nextjs/server";
 
 export default clerkMiddleware();
