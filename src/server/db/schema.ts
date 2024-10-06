@@ -39,7 +39,7 @@ export const users = createTable(
     //id key (primary)            //primary key implies not null
     id: int("id", {mode: "number"}).primaryKey({autoIncrement: true}),
     //Oauthorization ID
-    authId: int("auth_id", {mode: "number"}).unique().notNull(),
+    authId: text("auth_id").unique().notNull(),
     //displayName
     displayName: text("display_name", {length: 25}).notNull(),
     //iconUrl
