@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
 import { eq } from "drizzle-orm";
-import { groups } from "~/server/db/schema";
+import { groups, members, meetings, availabilities } from "~/server/db/schema";
 
 export const groupRouter = createTRPCRouter({
     // create new group
@@ -109,5 +109,18 @@ export const groupRouter = createTRPCRouter({
             // updates if there are parts still within schedule dates (updates to current start/end depending on what gets cut off)
             // deletes if it is fully outside group times/dates
 
-    // TODO: delete group
+    // delete group
+    deleteGroup: publicProcedure
+        .input(z.object({ id: z.number() }))
+        .mutation(async ({ ctx, input }) => {
+            await ctx.db.batch([
+                // delete records that depend on groups for foreign key 
+                ctx.db.delete(members).where(eq(members.groupId, input.id)), 
+                ctx.db.delete(meetings).where(eq(meetings.groupId, input.id)), 
+                ctx.db.delete(availabilities).where(eq(availabilities.groupId, input.id)),
+
+                // delete group record 
+                ctx.db.delete(groups).where(eq(groups.id, input.id))
+            ]);
+        }),
 })
