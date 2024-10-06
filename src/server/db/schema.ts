@@ -119,6 +119,7 @@ export const meetings = createTable(
 export const availabilities = createTable(
   "availabilities",
   {
+    id: int("id", {mode: "number"}).primaryKey({autoIncrement: true}),
     userId: int("user_id", {mode: "number"}).notNull().references(()=>users.id),
     groupId: int("group_id", {mode: "number"}).notNull().references(()=>groups.id),
     start: text("start"),

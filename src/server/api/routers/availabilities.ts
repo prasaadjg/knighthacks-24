@@ -1,26 +1,33 @@
-import { db } from "~/server/db";
+import { z } from "zod";
+import { createTRPCRouter, publicProcedure } from "../trpc";
+
 import { eq, and } from "drizzle-orm";
-import { availabilities, SelectUser, SelectGroup } from "~/server/db/schema";
+import { availabilities } from "~/server/db/schema";
 
-// get availabilities for a user in a group (based on userId + groupId -- findMany)
-export async function getAvailabilities(userId: SelectUser['id'], groupId: SelectGroup['id'])
-{
-    return db 
-        .select()
-        .from(availabilities)
-        .where(and(eq(availabilities.userId, userId), eq(availabilities.groupId, groupId)));
-}
+export const availabilityRouter = createTRPCRouter({
+    // TODO: add new availability
+        // check existing availabilities; if they contain hours in new availability, delete them 
+        // after all that, add new availability
 
-// update user availability (add new availability) -- one at a time
-    // check existing availabilities in db, if they contain any hours in the new availability, delete existing one  
-    // after all that, add new availability
-// TODO: do this once you figure out how to parse out the time :)
-
-
-// export async function addAvailability() {
-
-// }
-
-// TODO: delete availability (used for updating availability)
-// only affects availabilities table
-    // (availabilities not referenced in other tables)
+    // get availabilities in a group for a specific user
+    getAvailabilities: publicProcedure 
+        .input(z.object({ 
+            userId: z.number(), 
+            groupId: z.number(), 
+         }))
+         .query(async ({ ctx, input }) => {
+            return await ctx.db 
+                .select()
+                .from(availabilities)
+                .where(and(eq(availabilities.userId, input.userId), eq(availabilities.groupId, input.groupId)));
+         }),
+    
+    // delete availability
+    deleteAvailability: publicProcedure 
+         .input(z.object({ id: z.number() }))
+         .mutation(async ({ ctx, input }) => {
+            await ctx.db
+                .delete(availabilities)
+                .where(eq(availabilities.id, input.id))
+         }),
+})
