@@ -39,5 +39,4 @@ export const friendRouter = createTRPCRouter({
                 .delete(friends)
                 .where(and(eq(friends.userId, input.userId), eq(friends.friendId, input.friendId)));
         }),
-
 })

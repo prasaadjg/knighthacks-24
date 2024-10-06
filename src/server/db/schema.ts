@@ -107,6 +107,10 @@ export const meetings = createTable(
     meetingName: text("meeting_name", {length: 50}),
     start: text("start"),
     end: text("end"),
+  }, (table) => {
+    return {
+      pk: primaryKey({ columns: [table.groupId, table.meetingName] })
+    };
   }
 )
 
