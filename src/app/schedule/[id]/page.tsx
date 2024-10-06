@@ -81,8 +81,12 @@ export default function SchedulePage({ params }: { params: { id: string } }) {
     return person?.availability.filter((a: any) => new Date(a.start).toDateString() === day.toDateString());
   };
 
-  if (isMeetingLoading || isPeopleLoading) return <div className="text-center">Loading schedule...</div>;
-  if (isMeetingError || isPeopleError) return <div className="text-center text-red-500">Failed to load schedule.</div>;
+  if (isMeetingLoading || isPeopleLoading) {
+    return <div className="text-center">Loading schedule...</div>;
+  }
+    if (isMeetingError || isPeopleError){
+      return <div className="text-center text-red-500">Failed to load schedule.</div>;
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-4">
