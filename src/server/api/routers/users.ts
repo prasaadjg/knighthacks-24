@@ -1,10 +1,35 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
-import { eq, or } from "drizzle-orm";
+import { eq, or, sql } from "drizzle-orm";
 import { users, friends, members, availabilities } from "~/server/db/schema";
 
 export const usersRouter = createTRPCRouter({
+    addUser: publicProcedure
+    .input(z.object({
+        authId: z.string(), 
+        displayName: z.string(), 
+        iconUrl: z.string(), 
+        timeCreated: z.string().time().default(''),
+    }))
+        .mutation(async ({ ctx, input }) => {
+        const existingUser = await ctx.db
+            .select({ id: users.id })
+            .from(users)
+            .where(eq(users.authId, input.authId));
+
+        if (existingUser.length === 0) {
+            await ctx.db.insert(users).values({
+                authId: input.authId, 
+                displayName: input.displayName, 
+                iconUrl: input.iconUrl, 
+                timeCreated: ''
+            });
+        }
+        
+        return { success: true };
+    }),
+
     // create new user 
     createUser: publicProcedure 
         .input(z.object({

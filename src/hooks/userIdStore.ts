@@ -13,6 +13,7 @@ const useUserIdStore = () => {
   }).data;
 
   useEffect(() => {
+    console.log("change-------");
     if (foundUserId) {
       setUserId(foundUserId.id)
     }
