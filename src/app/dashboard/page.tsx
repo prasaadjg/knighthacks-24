@@ -2,19 +2,14 @@
 
 import { useAuth, useUser } from "@clerk/clerk-react"
 import { clerkClient } from "@clerk/nextjs/server";
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import useUserIdStore from "~/hooks/userIdStore";
+import useUserIdStore from "~/hooks/useUserIdStore";
 import { api } from "~/trpc/react"
 
 export default function page() {
   const { user } = useUser();
-  const userId = useUserIdStore();
-
-  useEffect(() => {
-    console.log('id');
-    console.log(userId);
-    console.log('user:', user);
-  });
+  const {userId} = useUserIdStore();
 
   return (
     <div className="p-4 bg-blue-400 h-screen w-screen">
@@ -22,6 +17,7 @@ export default function page() {
       <h1>Username: {user?.username}</h1>
       <div>User Auth ID: {user?.id}</div>
       <div>User ID: {userId}</div>
+      <Link href={'/'}>Back</Link>
     </div>
   )
 }
