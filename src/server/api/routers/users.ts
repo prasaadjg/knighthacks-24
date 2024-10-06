@@ -8,7 +8,6 @@ export const userRouter = createTRPCRouter({
     // create new user 
     createUser: publicProcedure 
         .input(z.object({
-            id: z.number(), 
             authId: z.number(), 
             displayName: z.string(), 
             iconUrl: z.string(), 
@@ -16,7 +15,6 @@ export const userRouter = createTRPCRouter({
         }))
         .mutation(async ({ ctx, input }) => {
             await ctx.db.insert(users).values({
-                id: input.id, 
                 authId: input.authId, 
                 displayName: input.displayName,
                 iconUrl: input.iconUrl, 

@@ -55,16 +55,63 @@ export const meetingRouter = createTRPCRouter({
                 .where(eq(meetings.groupId, input.groupId));
         }),
 
-    // get meeting dates -- returns start date and end date 
-    // TODO: figure out how to parse date from input
+    // get meeting start date/time 
+    // date/time is stored as one string and individual date/time must be parsed out 
+    getStart: publicProcedure 
+        .input(z.object({ 
+            groupId: z.number(),
+            meetingName: z.string()
+        }))
+        .query(async ({ ctx, input }) => {
+            return await ctx.db 
+                .select({ start: meetings.start })
+                .from(meetings)
+                .where(and(eq(meetings.groupId, input.groupId), eq(meetings.meetingName, input.meetingName)))
+        }),
 
-    // TODO: change meeting dates
-        // check that they fit within group constraints
+    // change meeting start date/time 
+    // must check whether new start date/time is valid 
+    changeStart: publicProcedure 
+        .input(z.object({
+            groupId: z.number(), 
+            meetingName: z.string(), 
+            newStart: z.string(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+            await ctx.db 
+                .update(meetings) 
+                .set({ start: input.newStart })
+                .where(and(eq(meetings.groupId, input.groupId), eq(meetings.meetingName, input.meetingName)))
+        }),
 
-    // TODO: get meeting times
+    // get meeting end date/time 
+    // date/time is stored as one string and individual date/time must be parsed out 
+    getEnd: publicProcedure 
+        .input(z.object({ 
+            groupId: z.number(),
+            meetingName: z.string()
+        }))
+        .query(async ({ ctx, input }) => {
+            return await ctx.db 
+                .select({ end: meetings.end })
+                .from(meetings)
+                .where(and(eq(meetings.groupId, input.groupId), eq(meetings.meetingName, input.meetingName)))
+        }),
     
-    // TODO: edit meeting times
-        // chekc that they fit within group constaints
+    // change meeting end date/time 
+    // must check whether new start date/time is valid 
+    changeEnd: publicProcedure 
+        .input(z.object({
+            groupId: z.number(), 
+            meetingName: z.string(), 
+            newEnd: z.string(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+            await ctx.db 
+                .update(meetings) 
+                .set({ end: input.newEnd })
+                .where(and(eq(meetings.groupId, input.groupId), eq(meetings.meetingName, input.meetingName)))
+        }),
     
     // delete meeting 
     deleteMeeting: publicProcedure
