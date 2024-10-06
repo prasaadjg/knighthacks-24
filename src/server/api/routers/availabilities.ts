@@ -1,26 +1,95 @@
-import { db } from "~/server/db";
+import { z } from "zod";
+import { createTRPCRouter, publicProcedure } from "../trpc";
+
 import { eq, and } from "drizzle-orm";
-import { availabilities, SelectUser, SelectGroup } from "~/server/db/schema";
+import { availabilities } from "~/server/db/schema";
 
-// get availabilities for a user in a group (based on userId + groupId -- findMany)
-export async function getAvailabilities(userId: SelectUser['id'], groupId: SelectGroup['id'])
-{
-    return db 
-        .select()
-        .from(availabilities)
-        .where(and(eq(availabilities.userId, userId), eq(availabilities.groupId, groupId)));
-}
+export const availabilityRouter = createTRPCRouter({
+    // add new availability
+    createAvailability: publicProcedure 
+        .input(z.object({
+            userId: z.number(), 
+            groupId: z.number(), 
+            start: z.string(), 
+            end: z.string(), 
+        }))
+        .mutation(async ({ ctx, input }) => {
+            await ctx.db.insert(availabilities).values({
+                userId: input.userId, 
+                groupId: input.groupId, 
+                start: input.start, 
+                end: input.end
+            });
+        }),
 
-// update user availability (add new availability) -- one at a time
-    // check existing availabilities in db, if they contain any hours in the new availability, delete existing one  
-    // after all that, add new availability
-// TODO: do this once you figure out how to parse out the time :)
 
+    // get availabilities in a group for a specific user
+    getAvailabilities: publicProcedure 
+        .input(z.object({ 
+            userId: z.number(), 
+            groupId: z.number(), 
+         }))
+         .query(async ({ ctx, input }) => {
+            return await ctx.db 
+                .select()
+                .from(availabilities)
+                .where(and(eq(availabilities.userId, input.userId), eq(availabilities.groupId, input.groupId)));
+         }),
 
-// export async function addAvailability() {
+    // get availability start date/time 
+    // date and time are put into one string and must be parsed out
+    getStart: publicProcedure 
+         .input(z.object({ id: z.number() }))
+         .query(async ({ ctx, input }) => {
+            return await ctx.db
+                .select({ start: availabilities.start })
+                .from(availabilities)
+                .where(eq(availabilities.id, input.id));
+         }),
+    
+    // change availability start date/time
+    changeStart: publicProcedure 
+         .input(z.object({
+            id: z.number(), 
+            newStart: z.string()
+         }))
+         .mutation(async ({ ctx, input }) => {
+            await ctx.db 
+                .update(availabilities)
+                .set({ start: input.newStart })
+                .where(eq(availabilities.id, input.id))
+         }),
 
-// }
+    // get availability end date/time 
+    // date and time are put into one string and must be parsed out
+    getEnd: publicProcedure 
+         .input(z.object({ id: z.number() }))
+         .query(async ({ ctx, input }) => {
+            return await ctx.db
+                .select({ end: availabilities.end })
+                .from(availabilities)
+                .where(eq(availabilities.id, input.id));
+         }),
 
-// TODO: delete availability (used for updating availability)
-// only affects availabilities table
-    // (availabilities not referenced in other tables)
+    // change availability end date/time
+    changeEnd: publicProcedure 
+         .input(z.object({
+            id: z.number(), 
+            newEnd: z.string()
+         }))
+         .mutation(async ({ ctx, input }) => {
+            await ctx.db 
+                .update(availabilities)
+                .set({ end: input.newEnd })
+                .where(eq(availabilities.id, input.id))
+         }),     
+         
+    // delete availability
+    deleteAvailability: publicProcedure 
+         .input(z.object({ id: z.number() }))
+         .mutation(async ({ ctx, input }) => {
+            await ctx.db
+                .delete(availabilities)
+                .where(eq(availabilities.id, input.id))
+         }),
+})
