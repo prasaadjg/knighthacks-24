@@ -32,6 +32,7 @@
     "server-only": "^0.0.1",
     "superjson": "^2.2.1",
     "swr": "^2.2.5",
+    "ws": "^8.18.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
