@@ -1,8 +1,9 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
+import { create } from "domain";
 import { sql } from "drizzle-orm";
-import { index, int, sqliteTableCreator, text, primaryKey } from "drizzle-orm/sqlite-core";
+import { index, int, sqliteTableCreator, integer, text, primaryKey, sqliteTable, foreignKey} from "drizzle-orm/sqlite-core";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -63,7 +64,6 @@ export const users = createTable(
       };
     });
 
-
 // groups table (schedules)
 
 export const groups = createTable(
@@ -106,9 +106,9 @@ export const meetings = createTable(
     meetingName: text("meeting_name", {length: 50}),
     start: text("start"),
     end: text("end"),
-
   }
 )
+
 
 // Availabilities
 export const availabilities = createTable(
@@ -120,7 +120,6 @@ export const availabilities = createTable(
     end: text("end"),
   }
 )
-
 
 export type InsertUser = typeof users.$inferInsert;
 export type SelectUser = typeof users.$inferSelect;
