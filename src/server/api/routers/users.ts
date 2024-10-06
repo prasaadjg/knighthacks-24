@@ -1,10 +1,35 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
-import { eq, or } from "drizzle-orm";
+import { eq, or, sql } from "drizzle-orm";
 import { users, friends, members, availabilities } from "~/server/db/schema";
 
-export const userRouter = createTRPCRouter({
+export const usersRouter = createTRPCRouter({
+    addUser: publicProcedure
+    .input(z.object({
+        authId: z.string(), 
+        displayName: z.string(), 
+        iconUrl: z.string(), 
+        timeCreated: z.string().time().default(''),
+    }))
+        .mutation(async ({ ctx, input }) => {
+        const existingUser = await ctx.db
+            .select({ id: users.id })
+            .from(users)
+            .where(eq(users.authId, input.authId));
+
+        if (existingUser.length === 0) {
+            await ctx.db.insert(users).values({
+                authId: input.authId, 
+                displayName: input.displayName, 
+                iconUrl: input.iconUrl, 
+                timeCreated: ''
+            });
+        }
+        
+        return { success: true };
+    }),
+
     // create new user 
     createUser: publicProcedure 
         .input(z.object({
@@ -21,6 +46,25 @@ export const userRouter = createTRPCRouter({
                 timeCreated: input.timeCreated, 
             });
         }),
+
+    // get primary key 
+    getIdFromUId: publicProcedure
+        .input(z.object({ authId: z.string() }))
+        .query(async ({ ctx, input }) => {
+            // Perform the database query
+            const result = await ctx.db
+            .select({ id: users.id })
+            .from(users)
+            .where(eq(users.authId, input.authId));
+
+        // Handle the case where no user is found
+        if (result.length === 0) {
+            throw new Error(`User with authId ${input.authId} not found`);
+        }
+
+        // Return the first result, assuming authId is unique
+        return result[0];
+    }),
     
     // get primary key 
     getIdFromUId: publicProcedure 
@@ -40,6 +84,16 @@ export const userRouter = createTRPCRouter({
                 .select({ displayName: users.displayName })
                 .from(users)
                 .where(eq(users.id, input.id));
+        }),
+
+    // get user's display name 
+    getDisplayNameWithUid: publicProcedure
+        .input(z.object({ uid: z.string() }))
+        .query(async ({ ctx, input }) => {
+            return await ctx.db
+                .select({ displayName: users.displayName })
+                .from(users)
+                .where(eq(users.authId, input.uid));
         }),
     
     // change user's display name

@@ -4,7 +4,7 @@ import { createTRPCRouter, publicProcedure } from "../trpc";
 import { eq, and } from "drizzle-orm";
 import { availabilities } from "~/server/db/schema";
 
-export const availabilityRouter = createTRPCRouter({
+export const availabilitiesRouter = createTRPCRouter({
     // add new availability
     createAvailability: publicProcedure 
         .input(z.object({

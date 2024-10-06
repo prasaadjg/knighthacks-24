@@ -4,7 +4,7 @@ import { createTRPCRouter, publicProcedure } from "../trpc";
 import { eq } from "drizzle-orm";
 import { groups, members, meetings, availabilities } from "~/server/db/schema";
 
-export const groupRouter = createTRPCRouter({
+export const groupsRouter = createTRPCRouter({
     // create new group
     createGroup: publicProcedure 
         .input(z.object({
