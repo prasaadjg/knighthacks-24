@@ -5,8 +5,23 @@ import { eq } from "drizzle-orm";
 import { groups, members, meetings, availabilities } from "~/server/db/schema";
 
 export const groupsRouter = createTRPCRouter({
-    // create new group
-    createGroup: publicProcedure 
+    // Get group name and icon by ID
+    getGroupName: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ ctx, input }) => {
+    const result = await ctx.db
+        .select({
+        groupName: groups.groupName,
+        iconUrl: groups.iconUrl, // Include iconUrl
+        })
+        .from(groups)
+        .where(eq(groups.id, input.id));
+
+    return result.length > 0 ? result[0] : null; // Return the first object if it exists
+    }),
+
+    // Create a new group
+    createGroup: publicProcedure
         .input(z.object({
             ownerId: z.number(), 
             groupName: z.string(), 
@@ -23,18 +38,56 @@ export const groupsRouter = createTRPCRouter({
                 iconUrl: input.iconUrl,
             });
         }),
-    
-    // get group name
-    getGroupName: publicProcedure
+
+    // Get group start time by ID (returns a single object)
+    getStart: publicProcedure
         .input(z.object({ id: z.number() }))
         .query(async ({ ctx, input }) => {
-            return await ctx.db
-                .select({ groupName: groups.groupName })
+            const result = await ctx.db
+                .select({ start: groups.start })
                 .from(groups)
-                .where(eq(groups.id, input.id))
+                .where(eq(groups.id, input.id));
+
+            return result.length > 0 ? result[0] : null; // Return the first object if it exists
         }),
 
-    // change group name
+    // Get group end time by ID (returns a single object)
+    getEnd: publicProcedure
+        .input(z.object({ id: z.number() }))
+        .query(async ({ ctx, input }) => {
+            const result = await ctx.db
+                .select({ end: groups.end })
+                .from(groups)
+                .where(eq(groups.id, input.id));
+
+            return result.length > 0 ? result[0] : null; // Return the first object if it exists
+        }),
+
+    // Get group owner by ID (returns a single object)
+    getOwner: publicProcedure
+        .input(z.object({ id: z.number() }))
+        .query(async ({ ctx, input }) => {
+            const result = await ctx.db
+                .select({ ownerId: groups.ownerId })
+                .from(groups)
+                .where(eq(groups.id, input.id));
+
+            return result.length > 0 ? result[0] : null; // Return the first object if it exists
+        }),
+
+    // Get group icon URL by ID (returns a single object)
+    getIconUrl: publicProcedure
+        .input(z.object({ id: z.number() }))
+        .query(async ({ ctx, input }) => {
+            const result = await ctx.db
+                .select({ iconUrl: groups.iconUrl })
+                .from(groups)
+                .where(eq(groups.id, input.id));
+
+            return result.length > 0 ? result[0] : null; // Return the first object if it exists
+        }),
+
+    // Change group name
     changeGroupName: publicProcedure
         .input(z.object({
             id: z.number(), 
@@ -46,18 +99,8 @@ export const groupsRouter = createTRPCRouter({
                 .set({ groupName: input.newName })
                 .where(eq(groups.id, input.id));
         }),
-    
-    // get group icon URL
-    getIconUrl: publicProcedure 
-        .input(z.object({ id: z.number() }))
-        .query(async ({ ctx, input }) => {
-            return await ctx.db
-                .select({ iconUrl: groups.iconUrl })
-                .from(groups)
-                .where(eq(groups.id, input.id))
-        }),  
-    
-    // change group icon
+
+    // Change group icon URL
     changeIconUrl: publicProcedure 
         .input(z.object({
             id: z.number(), 
@@ -70,45 +113,7 @@ export const groupsRouter = createTRPCRouter({
                 .where(eq(groups.id, input.id));
         }),
 
-    // get group owner
-    getOwner: publicProcedure
-        .input(z.object({ id: z.number() }))
-        .query(async ({ ctx, input }) => {
-            return await ctx.db
-                .select({ ownerId: groups.ownerId })
-                .from(groups)
-                .where(eq(groups.id, input.id));
-        }),
-    
-    // change group owner
-    changeOwner: publicProcedure
-        .input(z.object({
-            id: z.number(), 
-            newOwnerId: z.number(), 
-        }))
-        .mutation(async ({ ctx, input }) => {
-            await ctx.db
-                .update(groups)
-                .set({ ownerId: input.newOwnerId })
-                .where(eq(groups.id, input.id));
-        }),
-    
-    // get the start date/time of the group
-    // individual date/time must be parsed out by middleware
-    getStart: publicProcedure 
-        .input(z.object({ id: z.number() }))
-        .query(async ({ ctx, input }) => {
-            return await ctx.db
-                .select({ start: groups.start })
-                .from(groups)
-                .where(eq(groups.id, input.id));
-        }),
-
-
-    // change group start date/time
-    // date/time is entered as one string 
-    // availabilities that no longer fit within constraints must be removed by middleware 
-    // must also change availabilities that fit but are changed by new constraints 
+    // Change group start time
     changeStart: publicProcedure 
         .input(z.object({ 
             id: z.number(), 
@@ -121,44 +126,30 @@ export const groupsRouter = createTRPCRouter({
                 .where(eq(groups.id, input.id));
         }),
 
-    // get group end date/time 
-    // individual date/time must be parsed out by middleware
-    getEnd: publicProcedure 
-        .input(z.object({ id: z.number() }))
-        .query(async ({ ctx, input }) => {
-            return await ctx.db 
-                .select({ end: groups.end })
-                .from(groups) 
-                .where(eq(groups.id, input.id));
-        }),
-
-    // change group end date/time
-    // date/time is entered as one string 
-    // availabilities that no longer fit within constraints must be removed by middleware
-    // must also change availabilities that fit but are changed by new constraints
+    // Change group end time
     changeEnd: publicProcedure 
         .input(z.object({ 
             id: z.number(), 
             newEnd: z.string()
-         }))
-         .mutation(async ({ ctx, input }) => {
+        }))
+        .mutation(async ({ ctx, input }) => {
             await ctx.db 
                 .update(groups) 
                 .set({ end: input.newEnd })
-                .where(eq(groups.id, input.id))
-         }),
+                .where(eq(groups.id, input.id));
+        }),
 
-    // delete group
+    // Delete group and related records
     deleteGroup: publicProcedure
         .input(z.object({ id: z.number() }))
         .mutation(async ({ ctx, input }) => {
             await ctx.db.batch([
-                // delete records that depend on groups for foreign key 
+                // Delete dependent records (members, meetings, availabilities)
                 ctx.db.delete(members).where(eq(members.groupId, input.id)), 
                 ctx.db.delete(meetings).where(eq(meetings.groupId, input.id)), 
                 ctx.db.delete(availabilities).where(eq(availabilities.groupId, input.id)),
 
-                // delete group record 
+                // Delete the group
                 ctx.db.delete(groups).where(eq(groups.id, input.id))
             ]);
         }),
