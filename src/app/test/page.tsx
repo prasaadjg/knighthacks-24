@@ -2,7 +2,6 @@
 
 import { useAuth } from "@clerk/clerk-react";
 import Link from "next/link";
-import useUserIdStore from "~/hooks/userIdStore";
 import { api } from "~/trpc/react";
 
 export default function page() {
