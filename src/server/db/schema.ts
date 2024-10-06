@@ -90,7 +90,8 @@ export const members = createTable(
     //group_id -> is the foreign key to the groups id you are at
     groupId: int("group_id", {mode: "number"}).notNull().references(()=>groups.id),
     //user id- > represents the the user
-    userId: int("user_id", {mode: "number"}).notNull().references(()=> users.id)
+    userId: int("user_id", {mode: "number"}).notNull().references(()=> users.id),
+    userColor: text("user_color").notNull()
   }, (table) => {
     return {
       pk: primaryKey({ columns: [table.groupId, table.userId]})
