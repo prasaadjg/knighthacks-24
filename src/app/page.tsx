@@ -6,8 +6,10 @@ import { api, HydrateClient } from "~/trpc/server";
 import UserProfile from "./_components/UserProfile";
 import { getAuth } from "@clerk/nextjs/server";
 import { users } from "~/server/db/schema";
+import useUserIdStore from "~/hooks/userIdStore";
 
 export default async function Home() {
+  const { userId } = useUserIdStore();
 
   return (
     <HydrateClient>
