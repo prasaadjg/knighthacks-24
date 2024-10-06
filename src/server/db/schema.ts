@@ -48,8 +48,6 @@ export const users = createTable(
     timeCreated: text("time_created").notNull(),
   }
 );
-export type InsertUser = typeof users.$inferInsert;
-export type SelectUser = typeof users.$inferSelect;
 
 // user friends
 
@@ -66,8 +64,6 @@ export type SelectUser = typeof users.$inferSelect;
       };
     });
 
-    export type InsertFriend = typeof friends.$inferInsert;
-    export type SelectFriend = typeof friends.$inferSelect;
 // groups table (schedules)
 
 export const groups = createTable(
@@ -86,8 +82,6 @@ export const groups = createTable(
     iconUrl: text("icon_url").notNull(),
   },
 );
-  export type InsertGroup = typeof groups.$inferInsert;
-  export type SelectGroup = typeof groups.$inferSelect;
 
 //for each group; the members in the groups
 export const members = createTable(
@@ -103,8 +97,6 @@ export const members = createTable(
     };
   }
 );
-export type InsertMember = typeof members.$inferInsert;
-export type SelectMember = typeof members.$inferSelect;
 
 //for meetings
 export const meetings = createTable(
@@ -117,9 +109,8 @@ export const meetings = createTable(
   }
 )
 
-  export type InsertMeeting = typeof meetings.$inferInsert;
-  export type SelectMeeting = typeof meetings.$inferSelect;
-//for availibiities 
+
+// Availabilities
 export const availabilities = createTable(
   "availabilities",
   {
@@ -129,5 +120,21 @@ export const availabilities = createTable(
     end: text("end"),
   }
 )
-  export type InsertAvailability = typeof availabilities.$inferInsert;
-  export type SelectAvailability = typeof availabilities.$inferSelect;
+
+export type InsertUser = typeof users.$inferInsert;
+export type SelectUser = typeof users.$inferSelect;
+
+export type InsertFriend = typeof friends.$inferInsert;
+export type SelectFriend = typeof friends.$inferSelect;
+
+export type InsertGroup = typeof groups.$inferInsert;
+export type SelectGroup = typeof groups.$inferSelect;
+
+export type InsertAvailability = typeof availabilities.$inferInsert;
+export type SelectAvailability = typeof availabilities.$inferSelect;
+
+export type InsertMember = typeof members.$inferInsert;
+export type SelectMember = typeof members.$inferSelect;
+
+export type InsertMeeting = typeof meetings.$inferInsert;
+export type SelectMeeting = typeof meetings.$inferSelect;

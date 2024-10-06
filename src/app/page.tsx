@@ -1,8 +1,9 @@
+import { SignedIn, SignedOut, SignInButton, SignOutButton } from "@clerk/nextjs";
 import Link from "next/link";
-import { useEffect } from "react";
 
 import { LatestPost } from "~/app/_components/post";
 import { api, HydrateClient } from "~/trpc/server";
+import UserProfile from "./_components/UserProfile";
 
 export default async function Home() {
   const hello = await api.post.hello({ text: "from tRPC" });
@@ -16,6 +17,28 @@ export default async function Home() {
           <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
             Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
           </h1>
+
+          {/* SignedOut component to show login button when the user is not signed in */}
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Login
+              </button>
+            </SignInButton>
+          </SignedOut>
+
+          {/* SignedIn component to show a sign out button and user info */}
+          <SignedIn>
+            <p className="text-xl">{"Welcome! You're signed in."}</p>
+            <SignOutButton>
+              <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                Logout
+              </button>
+            </SignOutButton>
+
+            <UserProfile />
+          </SignedIn>
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
             <Link
               className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
@@ -45,6 +68,8 @@ export default async function Home() {
               {hello ? hello.greeting : "Loading tRPC query..."}
             </p>
           </div>
+
+          {/* <Link href={'/login'}>Login</Link> */}
 
           <LatestPost />
         </div>
