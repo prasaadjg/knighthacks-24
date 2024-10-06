@@ -8,7 +8,7 @@ export const userRouter = createTRPCRouter({
     // create new user 
     createUser: publicProcedure 
         .input(z.object({
-            authId: z.number(), 
+            authId: z.string(), 
             displayName: z.string(), 
             iconUrl: z.string(), 
             timeCreated: z.string().time(),
@@ -22,6 +22,15 @@ export const userRouter = createTRPCRouter({
             });
         }),
     
+    // get primary key 
+    getIdFromUId: publicProcedure 
+        .input(z.object({ authId: z.string() }))
+        .query(async ({ ctx, input }) => {
+            return await ctx.db
+                .select({ id: users.id })
+                .from(users)
+                .where(eq(users.authId, input.authId))
+        }),
 
     // get user's display name 
     getDisplayName: publicProcedure
