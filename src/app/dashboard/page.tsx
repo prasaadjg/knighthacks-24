@@ -7,9 +7,10 @@ import useUserIdStore from "~/hooks/useUserIdStore";
 import { api } from "~/trpc/react";
 
 export default function ProfilePage() {
-  const { user } = useUser();
+  const { isSignedIn, user } = useUser();
   const userId = useUserIdStore();
   const [groups, setGroups] = useState<any[]>([]);
+  const [userAdded, setUserAdded] = useState(false);
 
   const { data: groupsData, isLoading: groupsLoading } = api.members.getGroupsByUser.useQuery(
     { userId: userId ?? 0 },
@@ -18,23 +19,40 @@ export default function ProfilePage() {
     }
   );
 
+  const addUserToDb = api.users.addUser.useMutation({
+    onSuccess: () => {
+      setUserAdded(true);
+    },
+  });
+
+  const handleAddUser = () => {
+    if (user) {
+      console.log(user);
+      addUserToDb.mutate({
+        authId: user.id,
+        displayName: user.fullName ?? 'Unknown User',
+        iconUrl: user.imageUrl ?? '',
+      });
+    }
+  };
+
   useEffect(() => {
     if (groupsData) {
       setGroups(groupsData);
     }
-  }, [groupsData]);
+    if (!userId && isSignedIn) {
+      setUserAdded(false);
+    } else {
+      setUserAdded(true);
+    }
+  }, [groupsData, userId, isSignedIn]);
 
   return (
     <div className="p-8 bg-blue-100 min-h-screen flex flex-col items-center">
-      {/* Profile Section */}
       <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-lg mb-6 text-center">
-        <h1 className="text-3xl font-bold mb-4">{user?.fullName}</h1>
-        <p className="text-lg mb-2">Username: {user?.username}</p>
-        <p className="text-gray-700">User Auth ID: {user?.id}</p>
-        <p className="text-gray-700">User DB ID: {userId}</p>
+        <h1 className="text-3xl font-bold mb-4">{user?.firstName}</h1>
       </div>
 
-      {/* Groups Section */}
       <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-lg mb-6">
         <h2 className="text-2xl font-semibold mb-4">Your Groups</h2>
         {groupsLoading ? (
@@ -67,7 +85,17 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* Links Section */}
+      {isSignedIn && !userAdded && (
+        <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-lg mb-6 text-center">
+          <button
+            onClick={handleAddUser}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Add yourself to the database
+          </button>
+        </div>
+      )}
+
       <div className="w-full max-w-lg">
         <Link href={'/'}>
           <button className="w-full bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900">
