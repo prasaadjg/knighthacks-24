@@ -34,6 +34,16 @@ export const userRouter = createTRPCRouter({
                 .from(users)
                 .where(eq(users.id, input.id));
         }),
+
+    // get user's display name 
+    getDisplayNameWithUid: publicProcedure
+    .input(z.object({ uid: z.number() }))
+    .query(async ({ ctx, input }) => {
+        return await ctx.db
+            .select({ displayName: users.displayName })
+            .from(users)
+            .where(eq(users.authId, input.uid));
+    }),
     
     // change user's display name
     changeDisplayName: publicProcedure

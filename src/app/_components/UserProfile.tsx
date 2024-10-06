@@ -5,13 +5,13 @@ import Image from "next/image";
 import { useEffect } from "react";
 
 export default function UserProfile() {
-  const { user } = useUser();
+  const { user } = useUser();``
 
-  useEffect(() => {
-    console.log(user);
-    console.log(!user);
-    console.log(user?.imageUrl ?? 'hi');
-  }, [user]);
+  // useEffect(() => {
+  //   console.log(user);
+  //   console.log(!user);
+  //   console.log(user?.imageUrl ?? 'hi');
+  // }, [user]);
 
   if (!user) {
     return <div>Loading...</div>;

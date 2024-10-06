@@ -1,19 +1,27 @@
-import { SignedIn, SignedOut, SignInButton, SignOutButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton, SignOutButton, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 
 import { LatestPost } from "~/app/_components/post";
 import { api, HydrateClient } from "~/trpc/server";
 import UserProfile from "./_components/UserProfile";
+import { getAuth } from "@clerk/nextjs/server";
+import { users } from "~/server/db/schema";
 
 export default async function Home() {
-  const hello = await api.post.hello({ text: "from tRPC" });
-
-  void api.post.getLatest.prefetch();
 
   return (
     <HydrateClient>
       <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
+
+        <div className="fixed top-4 right-4">
+          <UserButton />
+        </div>
+
         <Link href='/test'>Test</Link>
+
+        <Link href='/dashboard'>
+          <button>Dashboard</button>
+        </Link>
 
           {/* SignedOut component to show login button when the user is not signed in */}
           <SignedOut>
